@@ -235,6 +235,38 @@ namespace Mastercard.UnitTests.Infrastructure.Simulation
             }
         }
 
+        [Fact]
+        public void Generate_ShouldIncludeRiskScoreData()
+        {
+            // Act
+            var payload = _generator.Generate();
+
+            // Assert
+            Assert.NotNull(payload.RiskScore);
+            Assert.NotNull(payload.RiskScore.RiskLevel);
+            Assert.NotNull(payload.RiskScore.SpendingPattern);
+        }
+
+        [Fact]
+        public void Generate_RiskScoreShouldBeValidIso8583Data()
+        {
+            // Act
+            var payload = _generator.Generate();
+            var riskScore = payload.RiskScore;
+
+            // Assert - Valida que todos os campos requeridos estão preenchidos
+            Assert.True(riskScore.Score >= 0 && riskScore.Score <= 999, "Score deve estar entre 0 e 999");
+            Assert.Matches(@"^(LOW|MEDIUM|HIGH|CRITICAL)$", riskScore.RiskLevel);
+            Assert.Matches(@"^[YNU]$", riskScore.AvsMatch);
+            Assert.Matches(@"^[YNU]$", riskScore.CvcMatch);
+            Assert.Matches(@"^(NORMAL|UNUSUAL|SUSPICIOUS)$", riskScore.SpendingPattern);
+            Assert.NotEmpty(riskScore.IpCountry);
+            Assert.True(riskScore.TransactionVelocity >= 0);
+            Assert.True(riskScore.FailedAttempts >= 0);
+            Assert.IsType<bool>(riskScore.IsBlacklisted);
+            Assert.True(riskScore.ScoreGeneratedAt <= DateTime.UtcNow.AddSeconds(1));
+        }
+
         private static bool IsValidLuhn(string pan)
         {
             if (string.IsNullOrEmpty(pan) || pan.Length != 16)
