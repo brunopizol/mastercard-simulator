@@ -29,7 +29,7 @@ namespace Mastercard.Infrastructure.Simulation
                 CorrelationId = correlationId,
                 Amount = amount,
                 Currency = currency,
-                CardId = Guid.NewGuid().ToString(),
+                CardId = GeneratePan(),
                 Pan = pan,
                 PanHash = panHash,
                 Account = GenerateAccountNumber(),
