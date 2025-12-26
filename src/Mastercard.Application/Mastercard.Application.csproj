@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mastercard.Core\Mastercard.Core.csproj" />
+  </ItemGroup>
+</Project>

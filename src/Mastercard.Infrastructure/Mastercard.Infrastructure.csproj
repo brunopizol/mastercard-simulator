@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mastercard.Core\Mastercard.Core.csproj" />
+    <ProjectReference Include="..\Mastercard.Application\Mastercard.Application.csproj" />
+  </ItemGroup>
+
+</Project>
