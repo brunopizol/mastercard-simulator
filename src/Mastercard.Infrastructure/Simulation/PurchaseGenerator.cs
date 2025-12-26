@@ -12,6 +12,8 @@ namespace Mastercard.Infrastructure.Simulation
         private static readonly Random _rnd = new Random();
         private static readonly string[] _currencies = new[] { "BRL", "USD", "EUR", "GBP", "ARS" };
         private static readonly string[] _merchants = new[] { "Loja Exemplo", "Mercado Central", "E-commerce XYZ", "Restaurante Bom Sabor" };
+        private static readonly string[] _riskLevels = new[] { "LOW", "MEDIUM", "HIGH", "CRITICAL" };
+        private static readonly string[] _spendingPatterns = new[] { "NORMAL", "UNUSUAL", "SUSPICIOUS" };
 
         public PurchasePayload Generate()
         {
@@ -45,11 +47,63 @@ namespace Mastercard.Infrastructure.Simulation
                 CardExpiration = GenerateExpiry(),
                 CardHolder = GenerateCardHolderName(),
                 Installments = _rnd.Next(1, 12),
+                RiskScore = GenerateRiskScore(amount),
                 AdditionalData = new Dictionary<string, object>
                 {
                     { "processor", "MastercardSimulator" },
                     { "testMode", "true" }
                 }
+            };
+        }
+
+        /// <summary>
+        /// Gera dados de risco baseados em ISO 8583
+        /// </summary>
+        private static RiskScoreData GenerateRiskScore(decimal amount)
+        {
+            // Calcula score baseado em múltiplos fatores
+            int baseScore = _rnd.Next(0, 100);
+            
+            // Aumenta risco para valores muito altos
+            if (amount > 5000) baseScore += 150;
+            else if (amount > 2000) baseScore += 75;
+            else if (amount > 1000) baseScore += 25;
+
+            // Fator aleatório de variação (simulando fraude ocasional)
+            if (_rnd.NextDouble() < 0.15) baseScore += _rnd.Next(200, 400);
+
+            var finalScore = Math.Min(baseScore, 999); // Limita a 999
+
+            // Determina nível de risco
+            string riskLevel = finalScore switch
+            {
+                >= 750 => "CRITICAL",
+                >= 500 => "HIGH",
+                >= 250 => "MEDIUM",
+                _ => "LOW"
+            };
+
+            // Determina padrão de gasto
+            string spendingPattern = finalScore switch
+            {
+                >= 500 => "SUSPICIOUS",
+                >= 250 => "UNUSUAL",
+                _ => "NORMAL"
+            };
+
+            return new RiskScoreData
+            {
+                Score = finalScore,
+                RiskLevel = riskLevel,
+                TransactionVelocity = _rnd.Next(0, 10), // Número de transações no período
+                AvsMatch = new[] { "Y", "N", "U" }[_rnd.Next(3)],
+                CvcMatch = new[] { "Y", "N", "U" }[_rnd.Next(3)],
+                SpendingPattern = spendingPattern,
+                IpCountry = _rnd.NextDouble() < 0.9 ? "BR" : new[] { "US", "CN", "RU", "NG" }[_rnd.Next(4)],
+                CountryMatch = _rnd.NextDouble() < 0.95, // 95% de correspondência
+                FailedAttempts = _rnd.Next(0, 5),
+                IsBlacklisted = _rnd.NextDouble() < 0.02, // 2% de chance de estar na lista negra
+                ScoreGeneratedAt = DateTime.UtcNow
             };
         }
 
